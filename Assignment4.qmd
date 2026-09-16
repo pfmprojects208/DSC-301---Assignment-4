@@ -1,0 +1,27 @@
+---
+title: "Assignment IV"
+subtitle: "DATA301/DATA471"
+author: "Pablo Fernandez"
+format: pdf
+editor: visual
+---
+
+```{r setup}
+#| include: false
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center"
+)
+
+library(fpp2)   # ausbeer dataset, autoplot, ggseasonplot, ggsubseriesplot
+library(boot)   # bootstrap bias correction
+
+set.seed(301)
+```
+
+## Exercise 1
+
+## Exercise 2
