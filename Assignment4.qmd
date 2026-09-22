@@ -24,4 +24,49 @@ set.seed(301)
 
 ## Exercise 1
 
+### Part 1 — Order statistics: comparison of alternatives
+
+**Summary of Wicklin (2017) and Hyndman & Fan (1996)**
+
+According to Hyndman & Fan (1996) there are nine definitions of sample quantiles that commonly appear in statistical software packages. All nine methods can be expressed through a common interpolation formula:
+
+$$Q(p) = (1 - \gamma)\, x_{[j]} + \gamma\, x_{[j+1]}$$
+
+where $j = \lfloor h \rfloor$, $\gamma = h - j$, and $h$ is a real-valued index that depends on $p$, $n$, and a method-specific parameter $m$. The nine types split into two groups:
+
+**Discontinuous methods (Types 1–3)** always return a value that is actually present in the sample (or an average of two adjacent values). They set $\gamma = 0$ or $\gamma = 1$ via a rounding rule:
+
+- **Type 1**: Inverse of the empirical CDF; rounds up — $Q(p) = x_{\lceil np \rceil}$.
+- **Type 2**: Average of the values to the left and right of the jump in the empirical CDF (SAS default). Returns the midpoint of adjacent observations when $np$ is an integer.
+- **Type 3**: Round to the nearest even index when $np$ is exactly a half-integer (used by some older packages).
+
+**Continuous methods (Types 4–9)** linearly interpolate between adjacent order statistics using $h = np + m(p)$:
+
+| Type | $h =$ | Notes |
+|---------------------|---------------------------|------------------------|
+| 4 | $np$ | Piecewise-linear CDF, no shift |
+| 5 | $np + 0.5$ | Piecewise-linear CDF with 0.5 offset |
+| 6 | $(n+1)p$ | Weibull plotting positions; used by Minitab, SPSS |
+| 7 | $(n-1)p + 1$ | **R default**; plotting positions $(j-1)/(n-1)$ |
+| 8 | $(n + 1/3)p + 1/3$ | Approximately median-unbiased for any distribution |
+| 9 | $(n + 1/4)p + 3/8$ | Approximately unbiased for the normal distribution (Blom) |
+
+Wicklin (2017) illustrates these differences visually and emphasises that for large samples the nine definitions converge; meaningful differences emerge mainly with small $n$ or extreme quantiles.
+
+**Which type would I choose and why?**
+
+For this exercise, where the data are modelled as i.i.d. $\text{Exponential}(\lambda)$ — a strongly right-skewed distribution — I would choose **Type 6** (Weibull plotting positions, $h = (n+1)p$). Hyndman & Fan show that Type 6 is *approximately median-unbiased for any continuous distribution*, not just symmetric or normal ones. Since the exponential distribution is far from symmetric, median unbiasedness over the class of all continuous distributions is a more robust guarantee than the normality-tuned Type 8 or Type 9. Type 6 also has a simple probabilistic interpretation: the $k$-th order statistic of a sample of size $n$ has median at approximately $p = k/(n+1)$, which is exactly the plotting position Type 6 inverts.
+
+**R's default**
+
+R uses **Type 7** by default in `quantile()`. This corresponds to $h = (n-1)p + 1$, which spaces the quantile estimates uniformly between the minimum and maximum of the sample (plotting positions $(j-1)/(n-1)$). It is a sensible general-purpose choice, but it is not median-unbiased for skewed distributions like the exponential.
+
+```{r type-demo}
+# Verify R's default quantile type
+x <- rexp(20, rate = 1)
+q_default <- quantile(x, probs = c(0.25, 0.75))          # type = 7
+q_type6   <- quantile(x, probs = c(0.25, 0.75), type = 6)
+rbind(default_type7 = q_default, type6 = q_type6)
+```
+
 ## Exercise 2
